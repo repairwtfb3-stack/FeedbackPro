@@ -1,0 +1,1 @@
+FeedbackPro WKR roadmap is changing to a theoretical and project-design format. Existing code is retained as historical material.
