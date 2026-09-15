@@ -12,8 +12,19 @@ jobs:
     env:
       PYTHONUTF8: "1"
       PYTHONIOENCODING: "utf-8"
+      FEEDBACKPRO_SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FEEDBACKPRO_SOURCE_COMMIT }}
+      - name: Verify source provenance
+        shell: pwsh
+        run: |
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:FEEDBACKPRO_SOURCE_COMMIT) {
+            throw "Checkout provenance mismatch: expected $env:FEEDBACKPRO_SOURCE_COMMIT, got $actual"
+          }
+          Write-Host "A4-R2 SOURCE_COMMIT=$actual"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -33,11 +44,11 @@ jobs:
         run: ./scripts/build_windows.ps1
       - name: Package contract smoke
         shell: pwsh
-        run: ./packaging/windows/smoke.ps1
+        run: ./packaging/windows/smoke.ps1 -ExpectedSourceCommit $env:FEEDBACKPRO_SOURCE_COMMIT
       - name: Upload Windows RC
         uses: actions/upload-artifact@v4
         with:
-          name: FeedbackPro-windows-rc-${{ github.sha }}
+          name: FeedbackPro-windows-rc-${{ env.FEEDBACKPRO_SOURCE_COMMIT }}
           path: release/**
           if-no-files-found: error
           retention-days: 14
