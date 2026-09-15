@@ -1,10 +1,7 @@
-name: FeedbackPro Windows Release Candidate
+name: FeedbackPro Legacy Windows Release
 
 on:
   workflow_dispatch:
-  pull_request:
-  push:
-    branches: ["main", "feat/a4-r1-r2-windows-release"]
 
 jobs:
   build-windows-rc:
@@ -12,19 +9,9 @@ jobs:
     env:
       PYTHONUTF8: "1"
       PYTHONIOENCODING: "utf-8"
-      FEEDBACKPRO_SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+      FEEDBACKPRO_SOURCE_COMMIT: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.FEEDBACKPRO_SOURCE_COMMIT }}
-      - name: Verify source provenance
-        shell: pwsh
-        run: |
-          $actual = (git rev-parse HEAD).Trim()
-          if ($actual -ne $env:FEEDBACKPRO_SOURCE_COMMIT) {
-            throw "Checkout provenance mismatch: expected $env:FEEDBACKPRO_SOURCE_COMMIT, got $actual"
-          }
-          Write-Host "A4-R2 SOURCE_COMMIT=$actual"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -48,7 +35,7 @@ jobs:
       - name: Upload Windows RC
         uses: actions/upload-artifact@v4
         with:
-          name: FeedbackPro-windows-rc-${{ env.FEEDBACKPRO_SOURCE_COMMIT }}
+          name: FeedbackPro-legacy-windows-${{ github.sha }}
           path: release/**
           if-no-files-found: error
           retention-days: 14
