@@ -2,16 +2,17 @@
 
 GitHub-репозиторий — **единственный источник истины** проекта.
 
-FeedbackPro: импорт CSV/XLSX → нормализация/dedup → тональность → темы/аспекты → критичность → решения → контроль → KPI/аналитика → отчёт.
+FeedbackPro — offline-first приложение для системной работы с отзывами: импорт CSV/XLSX → нормализация/dedup → анализ тональности/аспектов/критичности → экспертная верификация → решения → контроль → аналитика → отчёт.
 
-## A2
+## A3
 
-A2.1–A2.11 реализованы в `src/feedbackpro/`. Контрольная команда:
+A3.1–A3.11 реализуют операторский и исследовательский контур. Проверка:
 
 ```bash
 pip install -e ".[dev]"
 pytest
 feedbackpro-gate-a2
+feedbackpro-gate-a3 --evidence A3_EVIDENCE.json
 ```
 
 GUI:
@@ -21,12 +22,4 @@ pip install -e ".[ui]"
 feedbackpro-ui
 ```
 
-CLI:
-
-```bash
-feedbackpro --db feedbackpro.db import samples/reviews.csv
-feedbackpro --db feedbackpro.db dashboard
-feedbackpro --db feedbackpro.db report feedbackpro_report.md
-```
-
-Фактические KPI BEFORE/AFTER не придумываются и фиксируются только после пилотной апробации.
+Фактические BEFORE/AFTER не придумываются: они появляются только после пилотной апробации. Метрики качества алгоритма рассчитываются только по фактически экспертно размеченным отзывам.
