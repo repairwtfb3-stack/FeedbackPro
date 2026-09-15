@@ -4,7 +4,7 @@ build-backend="setuptools.build_meta"
 
 [project]
 name="feedbackpro"
-version="0.2.0"
+version="0.3.0"
 description="Offline customer feedback analysis and control system"
 readme="README.md"
 requires-python=">=3.11"
@@ -18,12 +18,13 @@ dev=["pytest>=8,<9"]
 feedbackpro="feedbackpro.cli:main"
 feedbackpro-ui="feedbackpro.ui:main"
 feedbackpro-gate-a2="feedbackpro.gate_a2:main"
+feedbackpro-gate-a3="feedbackpro.gate_a3:main"
 
 [tool.setuptools.packages.find]
 where=["src"]
 
 [tool.setuptools.package-data]
-feedbackpro=["Main.qml"]
+feedbackpro=["Main.qml","qml/*.qml","qml/components/*.qml"]
 
 [tool.pytest.ini_options]
 testpaths=["tests"]

@@ -18,3 +18,4 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: pytest
       - run: feedbackpro-gate-a2
+      - run: feedbackpro-gate-a3 --evidence A3_EVIDENCE.json
