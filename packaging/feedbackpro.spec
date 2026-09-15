@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from pathlib import Path
 
-ROOT = Path(SPECPATH).parent.parent
+ROOT = Path(SPECPATH).parent
 SRC = ROOT / "src"
 PKG = SRC / "feedbackpro"
 
