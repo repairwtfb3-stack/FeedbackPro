@@ -1,5 +1,6 @@
 param(
-    [string]$OutputDir = "release"
+    [string]$OutputDir = "release",
+    [string]$SourceCommit = $env:FEEDBACKPRO_SOURCE_COMMIT
 )
 
 $ErrorActionPreference = "Stop"
@@ -7,7 +8,12 @@ $Root = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $Root
 
 $Version = (python -c "from feedbackpro.version import VERSION; print(VERSION)").Trim()
-$Commit = (git rev-parse HEAD).Trim()
+$ActualCommit = (git rev-parse HEAD).Trim()
+if ([string]::IsNullOrWhiteSpace($SourceCommit)) { $SourceCommit = $ActualCommit }
+if ($ActualCommit -ne $SourceCommit) {
+    throw "Source provenance mismatch before build: expected $SourceCommit, got $ActualCommit"
+}
+$Commit = $SourceCommit
 $BuildUtc = [DateTime]::UtcNow.ToString("o")
 
 $BuildMeta = [ordered]@{
