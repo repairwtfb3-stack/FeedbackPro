@@ -10,11 +10,14 @@ def main()->int:
     except ImportError as exc:
         raise SystemExit("GUI requires PySide6") from exc
     from .backend import A3Backend
+    from .version import version_label
     class Backend(QObject):
         changed=Signal(); messageChanged=Signal()
         def __init__(self): super().__init__(); self.b=A3Backend()
         @Property(str,notify=messageChanged)
         def message(self): return self.b.message
+        @Property(str,constant=True)
+        def appVersion(self): return version_label()
         @Property(str,notify=changed)
         def dashboardJson(self): return json.dumps(self.b.dashboard(),ensure_ascii=False)
         @Property(str,notify=changed)
