@@ -1,0 +1,92 @@
+name: T3 Perekrestok Public Corpus
+
+on:
+  push:
+    branches:
+      - data/t3-acquire-perekrestok-yandex
+    paths:
+      - "research/t3/**"
+      - "data/raw_public/**"
+      - ".github/workflows/t3-public-corpus.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  acquire-and-analyze:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install research dependencies
+        run: python -m pip install --disable-pip-version-check requests pandas matplotlib
+
+      - name: Acquire public Perekrestok reviews
+        id: acquire
+        shell: bash
+        run: |
+          set +e
+          python research/t3/acquire_perekrestok_public.py
+          rc=$?
+          set -e
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          echo "Acquisition exit code: $rc"
+
+      - name: Analyze corpus
+        if: steps.acquire.outputs.exit_code == '0'
+        run: python research/t3/analyze_public_corpus.py
+
+      - name: Show evidence summary
+        if: always()
+        shell: bash
+        run: |
+          echo "--- acquisition report ---"
+          cat research/t3/output/ACQUISITION_REPORT.md || true
+          echo "--- analysis report ---"
+          cat research/t3/output/FACTUAL_ANALYSIS_REPORT.md || true
+          echo "--- files ---"
+          find research/t3/output -maxdepth 2 -type f -printf '%p %s bytes\n' | sort || true
+
+      - name: Commit reproducible research outputs
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -d research/t3/output ]; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/t3/output
+          if git diff --cached --quiet; then
+            echo "No research output changes to commit"
+          else
+            git commit -m "data: materialize T3 Perekrestok public corpus [skip ci]"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
+
+      - name: Upload evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: T3-perekrestok-public-corpus-${{ github.sha }}
+          path: research/t3/output/**
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce corpus Gate
+        if: steps.acquire.outputs.exit_code != '0'
+        run: |
+          echo "G-T3-09 not satisfied by this acquisition attempt"
+          exit 1
