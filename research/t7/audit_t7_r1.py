@@ -66,6 +66,8 @@ def main() -> None:
             f"{'PASS' if numbers_equal else 'FAIL'} |"
         )
 
+    # Citation coverage and evidence anchors are checked across the whole thesis
+    # body, including chapter 1, because the final citation map must remain 1..40.
     combined = "\n".join(transformed.values())
     used = expand_citations(combined)
     expected = set(range(1, 41))
@@ -80,12 +82,18 @@ def main() -> None:
     if recent_ratio < 80.0:
         failures.append(f"RECENT threshold failed: {recent_ratio:.2f}% < 80%")
 
+    # The user's R1 scope is explicit: introduction, chapters 2–3 and conclusion.
+    # Chapter 1 is preserved byte-for-byte from the closed T6 baseline and must
+    # therefore not cause a terminology-audit failure.
+    edited_combined = "\n".join(
+        transformed[name] for name in ALL_PARTS if name in TARGET_NAMES
+    )
     residual: list[str] = []
     for term in FORBIDDEN_AFTER_R1:
-        if term.lower() in combined.lower():
+        if term.lower() in edited_combined.lower():
             residual.append(term)
     if residual:
-        failures.append("forbidden editorial terms remain: " + ", ".join(residual))
+        failures.append("forbidden editorial terms remain in R1 target sections: " + ", ".join(residual))
 
     anchors = {
         "1200": "корпус 1200",
@@ -125,13 +133,14 @@ def main() -> None:
         "",
         "## Evidence invariance",
         "",
-        "- numeric token sequence for every edited part must be byte-order equivalent at token level;",
+        "- numeric token sequence for every source part must remain identical at token level;",
         "- key anchors 1200 / 1192 / 99,33 / 143 / 35 / study period / P4-P5 / S01 / E0 are required;",
         f"- anchor check: **{'PASS' if not missing_anchors else 'FAIL'}**.",
         "",
         "## Editorial term audit",
         "",
-        f"- forbidden residual terms: **{', '.join(residual) if residual else 'none'}**;",
+        "Scope: introduction, chapters 2–3 and conclusion. Chapter 1 remains the immutable T6 text and is excluded from the terminology scan.",
+        f"- forbidden residual terms in R1 target sections: **{', '.join(residual) if residual else 'none'}**;",
         f"- result: **{'PASS' if not residual else 'FAIL'}**.",
         "",
         "## Final",
