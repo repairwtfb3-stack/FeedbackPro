@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 TARGET_NAMES = {
@@ -22,7 +23,6 @@ REPLACEMENTS = [
     ("response ≠ action ≠ outcome", "ответ ≠ мероприятие ≠ подтверждённый результат"),
     ("response vs verified resolution", "публичные ответы и подтверждённые результаты"),
     ("expert verification high-criticality случаев", "экспертную проверку случаев высокой критичности"),
-    ("high-criticality screening cases", "случаев предварительного выявления высокой критичности"),
     ("high-criticality screening cases", "случаев предварительного выявления высокой критичности"),
     ("high-criticality", "высокой критичности"),
     ("critical triggers", "критерии критичности"),
@@ -168,10 +168,21 @@ FORBIDDEN_AFTER_R1 = (
     "sentiment-proxy",
 )
 
+# Final case-insensitive cleanup for the three terms that occur in mixed-case
+# headings/table labels in T6. These replacements are lexical only and cannot
+# alter numbers, citations or internal IDs.
+CASE_INSENSITIVE_REPLACEMENTS = [
+    (r"screening", "предварительное выявление"),
+    (r"response/action/outcome", "ответ/мероприятие/подтверждённый результат"),
+    (r"observability gap", "ограничение наблюдаемости"),
+]
+
 
 def normalize_text(text: str) -> str:
     for old, new in REPLACEMENTS:
         text = text.replace(old, new)
+    for pattern, new in CASE_INSENSITIVE_REPLACEMENTS:
+        text = re.sub(pattern, new, text, flags=re.IGNORECASE)
     return text
 
 
