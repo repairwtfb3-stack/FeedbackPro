@@ -1,0 +1,81 @@
+name: T7.1 R1 Editorial Audit and Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'research/t7/**'
+      - 'docs/t7/**'
+      - '.github/workflows/t7-r1-editorial.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install document toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc libreoffice-writer poppler-utils graphviz fonts-liberation
+          python -m pip install --upgrade pip
+          python -m pip install python-docx pypdf
+
+      - name: Citation and evidence invariance audit
+        run: python research/t7/audit_t7_r1.py
+
+      - name: Build T7.1-R1 DOCX
+        run: python research/t7/build_t7_r1.py
+
+      - name: Convert to PDF and verify
+        run: |
+          mkdir -p research/t7/build/pdf
+          libreoffice --headless --convert-to pdf --outdir research/t7/build/pdf research/t7/build/WKR_Methodika_EG_T7_R1.docx
+          PDF=research/t7/build/pdf/WKR_Methodika_EG_T7_R1.pdf
+          pages=$(pdfinfo "$PDF" | awk '/^Pages:/ {print $2}')
+          echo "$pages" | tee research/t7/build/PAGE_COUNT.txt
+          pdftotext "$PDF" research/t7/build/WKR_Methodika_EG_T7_R1.txt
+          test -s research/t7/build/WKR_Methodika_EG_T7_R1.docx
+          test -s "$PDF"
+          test "$pages" -ge 60
+          test "$pages" -le 80
+          grep -q 'СОДЕРЖАНИЕ' research/t7/build/WKR_Methodika_EG_T7_R1.txt
+          grep -q 'Введение' research/t7/build/WKR_Methodika_EG_T7_R1.txt
+          grep -q 'Глава 2' research/t7/build/WKR_Methodika_EG_T7_R1.txt
+          grep -q 'Глава 3' research/t7/build/WKR_Methodika_EG_T7_R1.txt
+          grep -q 'Заключение' research/t7/build/WKR_Methodika_EG_T7_R1.txt
+
+      - name: Write build report
+        run: |
+          {
+            echo '# T7.1-R1 editorial build report'
+            echo
+            echo "Commit: $GITHUB_SHA"
+            echo "Pages: $(cat research/t7/build/PAGE_COUNT.txt)"
+            echo 'T6 closed baseline is not modified.'
+            echo 'R1 transformations are deterministic and limited to terminology/editorial wording.'
+            echo 'Citation-token and numeric-token invariance is enforced by audit_t7_r1.py.'
+            echo 'Title page remains administrative-blocked and is not treated as final.'
+            echo 'Appendices are not yet attached in R1.'
+          } > research/t7/build/BUILD_REPORT.md
+
+      - name: Upload T7.1-R1 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: T7.1-R1-WKR-Methodika-EG
+          path: |
+            research/t7/build/WKR_Methodika_EG_T7_R1.docx
+            research/t7/build/pdf/WKR_Methodika_EG_T7_R1.pdf
+            research/t7/build/T7_R1_COMBINED.md
+            research/t7/build/T7_R1_AUDIT.md
+            research/t7/build/sources/**
+            research/t7/build/PAGE_COUNT.txt
+            research/t7/build/BUILD_REPORT.md
+          if-no-files-found: error
+          retention-days: 30
