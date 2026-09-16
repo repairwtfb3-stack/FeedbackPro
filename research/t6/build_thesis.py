@@ -26,7 +26,6 @@ PARTS = [
     ROOT / "docs/t6/T6_REFERENCES.md",
 ]
 
-# Static, deterministic TOC. Page numbers are verified after rendered PDF build.
 TOC = [
     ("Введение", 3),
     ("Глава 1. Теоретические основы организации работы с отзывами клиентов в системе PR-коммуникаций", 11),
@@ -39,10 +38,10 @@ TOC = [
     ("2.3. Выявленные проблемы и требования к совершенствованию процесса работы с отзывами", 42),
     ("Глава 3. Разработка организационно-методической программы «Методика ЕГ» и плана её внедрения", 48),
     ("3.1. Обоснование концепции и целевая процессная модель TO-BE", 48),
-    ("3.2. Классификатор, роли, регламент, архитектура и проектные представления «Методики ЕГ»", 52),
-    ("3.3. KPI, план внедрения, риски и методика будущей оценки эффективности", 57),
-    ("Заключение", 64),
-    ("Список использованных источников", 72),
+    ("3.2. Классификатор, роли, регламент, архитектура и проектные представления «Методики ЕГ»", 53),
+    ("3.3. KPI, план внедрения, риски и методика будущей оценки эффективности", 61),
+    ("Заключение", 68),
+    ("Список использованных источников", 76),
 ]
 
 
@@ -72,9 +71,7 @@ A[label="Получение отзыва"]; B[label="Регистрация + pr
 F[label="Экспертная проверка"]; G[label="Стандартная маршрутизация"]; H[label="Эскалация"]; I[label="Назначение профильной роли"]; J[label="Решение"]; K[label="Ответ клиенту"]; L[label="Внутреннее мероприятие"]; M[label="Контроль"]; N[label="Оценка outcome"]; O[label="Результат подтверждён?",shape=diamond]; P[label="Закрытие + знания"]; Q[label="Аналитика / KPI"];
 A->B->C->D->E; E->F[label="да"]; E->G[label="нет"]; {rank=same;F;G;} F->H; G->I; {rank=same;H;I;} H->J; I->J; J->K; J->L; {rank=same;K;L;} K->M; L->M; M->N->O; O->J[label="нет"]; O->P[label="да"]; P->Q;
 ''',
-            rankdir="TB",
-            nodesep=0.28,
-            ranksep=0.34,
+            rankdir="TB", nodesep=0.28, ranksep=0.34,
         ),
         dot(
             "decision_tree",
@@ -82,9 +79,7 @@ A->B->C->D->E; E->F[label="да"]; E->G[label="нет"]; {rank=same;F;G;} F->H; 
 A[label="Новый отзыв"]; B[label="Регистрация"]; C[label="Аспекты + тональность"]; D[label="Critical trigger?",shape=diamond]; E[label="Предварительный C3/C4"]; F[label="Expert verification"]; G[label="Высокий риск подтверждён?",shape=diamond]; H[label="Эскалация RM / Legal"]; I[label="Изменить C-level\\nс основанием"]; J[label="Нужно профильное действие?",shape=diamond]; K[label="C2/C3 по контексту"]; L[label="C1"]; M[label="Решение"]; N[label="Ответ и/или мероприятие"]; O[label="Контроль"]; P[label="Outcome подтверждён?",shape=diamond]; Q[label="Закрытие"];
 A->B->C->D; D->E[label="да"]; E->F->G; G->H[label="да"]; G->I[label="нет"]; D->J[label="нет"]; J->K[label="да"]; J->L[label="нет"]; {rank=same;H;I;K;L;} H->M; I->M; K->M; L->M; M->N->O->P; P->M[label="нет"]; P->Q[label="да"];
 ''',
-            rankdir="TB",
-            nodesep=0.22,
-            ranksep=0.34,
+            rankdir="TB", nodesep=0.22, ranksep=0.34,
         ),
         dot(
             "architecture",
@@ -92,9 +87,7 @@ A->B->C->D; D->E[label="да"]; E->F->G; G->H[label="да"]; G->I[label="нет"
 A[label="Каналы обратной связи"]; B[label="Получение и регистрация"]; C[label="Качество данных\\nprovenance / dedup / privacy"]; D[label="Классификация и анализ"]; E[label="Решение и маршрутизация"]; F[label="Коммуникация\\nRESPONSE"]; G[label="Внутренние мероприятия\\nACTION"]; H[label="Контроль результата\\nOUTCOME"]; I[label="Аналитика / KPI"]; J[label="Knowledge base / улучшения"];
 A->B->C->D->E; E->F; E->G; {rank=same;F;G;} F->H; G->H; H->I->J; J->D[label="обновление правил"];
 ''',
-            rankdir="TB",
-            nodesep=0.35,
-            ranksep=0.42,
+            rankdir="TB", nodesep=0.35, ranksep=0.42,
         ),
         dot(
             "logical_model",
@@ -102,9 +95,7 @@ A->B->C->D->E; E->F; E->G; {rank=same;F;G;} F->H; G->H; H->I->J; J->D[label="о�
 S[label="SOURCE"]; R[label="REVIEW_CASE"]; C[label="CLASSIFICATION"]; A[label="ASPECT"]; D[label="DECISION"]; RESP[label="RESPONSE"]; ACT[label="ACTION"]; CTRL[label="CONTROL_EVENT"]; O[label="OUTCOME"]; ROLE[label="ROLE"]; AUD[label="AUDIT_EVENT"];
 S->R; R->C; C->A[label="M:N"]; R->D; D->RESP; D->ACT; {rank=same;RESP;ACT;} RESP->CTRL; ACT->CTRL; CTRL->O; R->O; ROLE->D; ROLE->ACT; R->AUD;
 ''',
-            rankdir="TB",
-            nodesep=0.32,
-            ranksep=0.38,
+            rankdir="TB", nodesep=0.32, ranksep=0.38,
         ),
         dot(
             "implementation",
@@ -112,9 +103,7 @@ S->R; R->C; C->A[label="M:N"]; R->D; D->RESP; D->ACT; {rank=same;RESP;ACT;} RESP
 E0[label="E0. Решение о пилоте"]; E1[label="E1. Подготовка"]; E2[label="E2. Адаптация методики"]; E3[label="E3. Обучение / dry-run"]; E4[label="E4. BEFORE baseline"]; E5[label="E5. Пилот"]; E6[label="E6. AFTER measurement"]; E7[label="E7. Оценка"]; D[label="Decision gate",shape=diamond]; E8[label="E8. Масштабирование"]; C[label="Корректировка\\nновая версия + новый пилот"]; X[label="Остановить / разбор причин"];
 E0->E1->E2->E3->E4->E5->E6->E7->D; D->E8[label="масштабировать"]; D->C[label="корректировать"]; D->X[label="остановить"]; {rank=same;E8;C;X;} C->E2[label="новый цикл"];
 ''',
-            rankdir="TB",
-            nodesep=0.30,
-            ranksep=0.36,
+            rankdir="TB", nodesep=0.30, ranksep=0.36,
         ),
     ]
 
@@ -134,12 +123,13 @@ def build_markdown(diagrams: list[Path]) -> Path:
     text = '''# ВЫПУСКНАЯ КВАЛИФИКАЦИОННАЯ РАБОТА\n\n**Тема:** «создание программы по работе с отзывами клиентов анализ, моделирование, внедрение»\n\n**Рабочее название авторской разработки:** «Методика ЕГ»\n\n*Рабочая сборка T6. Реквизиты образовательной организации, обучающегося и руководителя заполняются по утверждённому титульному шаблону на этапе T7.*\n\n'''
     text += toc_markdown() + "\n"
     captions = [
-        "Целевая процессная модель TO-BE «Методики ЕГ»",
-        "Дерево решений и эскалации",
-        "Функциональная архитектура «Методики ЕГ»",
-        "Логическая модель информационных сущностей",
-        "Этапы внедрения E0-E8",
+        "Рисунок 3.1 — Целевая процессная модель TO-BE «Методики ЕГ»",
+        "Рисунок 3.2 — Дерево решений и эскалации",
+        "Рисунок 3.3 — Функциональная архитектура «Методики ЕГ»",
+        "Рисунок 3.4 — Логическая модель информационных сущностей",
+        "Рисунок 3.5 — Этапы внедрения E0-E8",
     ]
+    widths = [12.4, 13.2, 13.4, 13.6, 13.2]
     d_idx = 0
     for path in PARTS:
         s = path.read_text(encoding="utf-8-sig").replace("../../research/", "research/")
@@ -150,8 +140,9 @@ def build_markdown(diagrams: list[Path]) -> Path:
                 return ""
             img = diagrams[d_idx].relative_to(ROOT).as_posix()
             cap = captions[d_idx]
+            width = widths[d_idx]
             d_idx += 1
-            return f'\n![{cap}]({img}){{ width=14.7cm }}\n'
+            return f'\n![{cap}]({img}){{ width={width}cm }}\n'
 
         s = re.sub(r"```mermaid\s*.*?```", repl, s, flags=re.S)
         text += s.rstrip() + "\n\n"
@@ -265,8 +256,8 @@ def postprocess(docx_path: Path):
         if p._p.xpath('.//w:drawing'):
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.paragraph_format.first_line_indent = Cm(0)
-            p.paragraph_format.space_before = Pt(6)
-            p.paragraph_format.space_after = Pt(6)
+            p.paragraph_format.space_before = Pt(4)
+            p.paragraph_format.space_after = Pt(4)
 
         for r in p.runs:
             if txt == "СОДЕРЖАНИЕ":
