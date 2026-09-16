@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          python research/t3/acquire_perekrestok_public.py
+          python research/t3/acquire_perekrestok_expanded.py
           rc=$?
           set -e
           echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
