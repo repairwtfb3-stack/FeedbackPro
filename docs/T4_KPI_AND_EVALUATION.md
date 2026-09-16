@@ -1,4 +1,4 @@
-# FeedbackPro — T4: KPI, формулы и правила интерпретации
+# Методика ЕГ — T4: KPI, формулы и правила интерпретации
 
 Статус: **PROJECT KPI FRAMEWORK / NO FABRICATED RESULTS**
 
