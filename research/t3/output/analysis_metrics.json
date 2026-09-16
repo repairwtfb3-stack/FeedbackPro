@@ -1,0 +1,48 @@
+{
+  "records": 1200,
+  "date_min": "2025-09-01",
+  "date_max": "2026-08-31",
+  "sources": {
+    "RuStore": 8,
+    "Yandex Maps": 1192
+  },
+  "ratings_available": 1192,
+  "sentiment_proxy": {
+    "POS": 702,
+    "NEU": 71,
+    "NEG": 419,
+    "UNKNOWN": 8
+  },
+  "criticality": {
+    "C1": 716,
+    "C2": 341,
+    "C3": 93,
+    "C4": 50
+  },
+  "aspects": {
+    "SERVICE": 869,
+    "QUALITY": 551,
+    "STAFF": 502,
+    "PRICE": 278,
+    "AVAILABILITY": 242,
+    "OTHER": 109,
+    "SUPPORT": 85,
+    "DELIVERY": 78,
+    "RETURN": 41,
+    "DIGITAL": 33
+  },
+  "owner_reply_count": 1192,
+  "owner_reply_rate_pct": 99.33,
+  "low_rating_count": 419,
+  "low_rating_owner_reply_rate_pct": 100.0,
+  "c3_c4_with_rating_above_2_or_missing": 35,
+  "repeated_aspects": {
+    "SERVICE": 869,
+    "QUALITY": 551,
+    "STAFF": 502,
+    "PRICE": 278,
+    "AVAILABILITY": 242,
+    "SUPPORT": 85,
+    "DELIVERY": 78
+  }
+}
