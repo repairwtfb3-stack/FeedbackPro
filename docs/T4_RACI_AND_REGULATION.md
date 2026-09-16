@@ -1,4 +1,4 @@
-# FeedbackPro — T4: RACI и регламент работы с отзывами
+# Методика ЕГ — T4: RACI и регламент работы с отзывами
 
 Статус: **PROJECT REGULATION / ADAPT AT IMPLEMENTATION**
 
