@@ -6,7 +6,7 @@
   "target": 1200,
   "min_acceptable": 1000,
   "max_acceptable": 1500,
-  "acquired_at_utc": "2026-09-16T08:03:56.757886+00:00",
+  "acquired_at_utc": "2026-09-16T08:09:28.158364+00:00",
   "aggregate_meta": {},
   "aggregate_items_embedded": 0,
   "aggregate_no_date": 0,
@@ -84,31 +84,170 @@
       "raw_reviews": 600,
       "in_window": 35,
       "errors": []
+    },
+    "158894039840": {
+      "configured_label": "Перекрёсток / Yandex business 158894039840",
+      "pages": 11,
+      "raw_reviews": 529,
+      "in_window": 44,
+      "errors": []
+    },
+    "171071481416": {
+      "configured_label": "Перекрёсток / Yandex business 171071481416",
+      "pages": 3,
+      "raw_reviews": 144,
+      "in_window": 56,
+      "errors": []
+    },
+    "207411958069": {
+      "configured_label": "Перекрёсток / Yandex business 207411958069",
+      "pages": 12,
+      "raw_reviews": 600,
+      "in_window": 96,
+      "errors": []
+    },
+    "1033635077": {
+      "configured_label": "Перекрёсток / Yandex business 1033635077",
+      "pages": 5,
+      "raw_reviews": 250,
+      "in_window": 36,
+      "errors": [
+        "page 6: rating/reviews node not found"
+      ]
+    },
+    "89580496666": {
+      "configured_label": "Перекрёсток / Yandex business 89580496666",
+      "pages": 12,
+      "raw_reviews": 600,
+      "in_window": 84,
+      "errors": []
+    },
+    "14309395134": {
+      "configured_label": "Перекрёсток / Yandex business 14309395134",
+      "pages": 6,
+      "raw_reviews": 300,
+      "in_window": 20,
+      "errors": [
+        "page 7: rating/reviews node not found"
+      ]
+    },
+    "122713806381": {
+      "configured_label": "Перекрёсток / Yandex business 122713806381",
+      "pages": 2,
+      "raw_reviews": 97,
+      "in_window": 96,
+      "errors": []
+    },
+    "89505138118": {
+      "configured_label": "Перекрёсток / Yandex business 89505138118",
+      "pages": 9,
+      "raw_reviews": 404,
+      "in_window": 6,
+      "errors": []
+    },
+    "208592166351": {
+      "configured_label": "Перекрёсток / Yandex business 208592166351",
+      "pages": 1,
+      "raw_reviews": 39,
+      "in_window": 25,
+      "errors": []
+    },
+    "73117390093": {
+      "configured_label": "Перекрёсток / Yandex business 73117390093",
+      "pages": 11,
+      "raw_reviews": 535,
+      "in_window": 88,
+      "errors": []
+    },
+    "59062427580": {
+      "configured_label": "Перекрёсток / Yandex business 59062427580",
+      "pages": 12,
+      "raw_reviews": 600,
+      "in_window": 25,
+      "errors": []
+    },
+    "241633336363": {
+      "configured_label": "Перекрёсток / Yandex business 241633336363",
+      "pages": 11,
+      "raw_reviews": 515,
+      "in_window": 27,
+      "errors": []
+    },
+    "63715298452": {
+      "configured_label": "Перекрёсток / Yandex business 63715298452",
+      "pages": 4,
+      "raw_reviews": 195,
+      "in_window": 41,
+      "errors": []
+    },
+    "199671455065": {
+      "configured_label": "Перекрёсток / Yandex business 199671455065",
+      "pages": 12,
+      "raw_reviews": 600,
+      "in_window": 0,
+      "errors": []
+    },
+    "212916785236": {
+      "configured_label": "Перекрёсток / Yandex business 212916785236",
+      "pages": 9,
+      "raw_reviews": 429,
+      "in_window": 24,
+      "errors": []
+    },
+    "100264989344": {
+      "configured_label": "Сочи/Адлер, Перекрёсток / Yandex business 100264989344",
+      "pages": 12,
+      "raw_reviews": 600,
+      "in_window": 39,
+      "errors": []
+    },
+    "155093500740": {
+      "configured_label": "Москва, Балаклавский проспект, 5А",
+      "pages": 3,
+      "raw_reviews": 150,
+      "in_window": 56,
+      "errors": []
     }
   },
-  "raw_eligible_before_dedup": 539,
+  "raw_eligible_before_dedup": 1302,
   "duplicates_removed": 0,
-  "unique_eligible_pool": 539,
-  "selected_count": 539,
+  "unique_eligible_pool": 1302,
+  "selected_count": 1200,
   "selected_by_source": {
-    "Yandex Maps": 531,
+    "Yandex Maps": 1192,
     "RuStore": 8
   },
   "selected_by_business": {
-    "1016216449": 39,
-    "1011746989": 78,
-    "107753056573": 42,
-    "150402629053": 75,
-    "241557372236": 46,
-    "1033549331": 61,
-    "108942729577": 69,
-    "1346437790": 29,
-    "1106270812": 57,
-    "115894975781": 35,
+    "89505138118": 6,
+    "100264989344": 34,
+    "1016216449": 38,
+    "208592166351": 23,
+    "1011746989": 73,
+    "89580496666": 79,
+    "63715298452": 39,
+    "107753056573": 40,
+    "150402629053": 71,
+    "155093500740": 51,
+    "241557372236": 43,
+    "1033549331": 55,
+    "241633336363": 26,
+    "108942729577": 60,
+    "212916785236": 22,
+    "158894039840": 40,
+    "1346437790": 27,
+    "59062427580": 22,
+    "207411958069": 88,
+    "14309395134": 18,
+    "1106270812": 51,
+    "1033635077": 34,
+    "171071481416": 50,
+    "115894975781": 32,
+    "73117390093": 80,
+    "122713806381": 90,
     "app storefront": 8
   },
   "selected_min_date": "2025-09-01",
   "selected_max_date": "2026-08-31",
-  "selected_with_rating": 531,
-  "selected_with_owner_reply": 531
+  "selected_with_rating": 1192,
+  "selected_with_owner_reply": 1192
 }

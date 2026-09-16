@@ -1,13 +1,13 @@
 # T3 Perekrestok public corpus — acquisition report
 
 Study period: **2025-09-01..2026-08-31**
-Unique eligible pool before sampling: **539**
-Selected analytical corpus: **539**
+Unique eligible pool before sampling: **1302**
+Selected analytical corpus: **1200**
 Duplicates removed: **0**
-Sources: `{'Yandex Maps': 531, 'RuStore': 8}`
+Sources: `{'Yandex Maps': 1192, 'RuStore': 8}`
 Date span in selected corpus: **2025-09-01..2026-08-31**
-Rows with explicit rating: **531**
-Rows with visible owner reply: **531**
+Rows with explicit rating: **1192**
+Rows with visible owner reply: **1192**
 
 ## Research integrity
 
@@ -20,4 +20,4 @@ Rows with visible owner reply: **531**
 
 ## Gate
 
-**G-T3-09 = BLOCKED**
+**G-T3-09 = PASS**
