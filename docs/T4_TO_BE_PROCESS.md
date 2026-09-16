@@ -1,4 +1,4 @@
-# FeedbackPro — T4: целевая TO-BE модель
+# Методика ЕГ — T4: целевая TO-BE модель
 
 Статус: **CANONICAL PRACTICAL MODEL / NO-CODE**
 
