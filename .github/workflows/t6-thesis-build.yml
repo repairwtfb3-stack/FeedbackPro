@@ -1,0 +1,76 @@
+name: T6 Thesis Document Build
+
+on:
+  push:
+    branches:
+      - docs/t6-thesis-assembly
+    paths:
+      - 'docs/t6/**'
+      - 'research/t6/**'
+      - 'research/t3/output/**'
+      - '.github/workflows/t6-thesis-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install document toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc libreoffice-writer poppler-utils graphviz fonts-liberation
+          python -m pip install --upgrade pip
+          python -m pip install python-docx pypdf
+
+      - name: Build DOCX
+        run: python research/t6/build_thesis.py
+
+      - name: Convert to PDF
+        run: |
+          mkdir -p research/t6/build/pdf
+          libreoffice --headless --convert-to pdf --outdir research/t6/build/pdf research/t6/build/WKR_Methodika_EG_T6.docx
+
+      - name: Verify page count and text
+        run: |
+          PDF=research/t6/build/pdf/WKR_Methodika_EG_T6.pdf
+          pages=$(pdfinfo "$PDF" | awk '/^Pages:/ {print $2}')
+          echo "$pages" | tee research/t6/build/PAGE_COUNT.txt
+          pdftotext "$PDF" research/t6/build/WKR_Methodika_EG_T6.txt
+          test -s research/t6/build/WKR_Methodika_EG_T6.docx
+          test -s "$PDF"
+          test "$pages" -gt 0
+          grep -q 'Введение' research/t6/build/WKR_Methodika_EG_T6.txt
+          grep -q 'Глава 1' research/t6/build/WKR_Methodika_EG_T6.txt
+          grep -q 'Глава 2' research/t6/build/WKR_Methodika_EG_T6.txt
+          grep -q 'Глава 3' research/t6/build/WKR_Methodika_EG_T6.txt
+          grep -q 'Заключение' research/t6/build/WKR_Methodika_EG_T6.txt
+          grep -q 'Список использованных источников' research/t6/build/WKR_Methodika_EG_T6.txt
+
+      - name: Write build report
+        run: |
+          {
+            echo '# T6 document build report'
+            echo
+            echo "Commit: $GITHUB_SHA"
+            echo "Pages (headless LibreOffice render): $(cat research/t6/build/PAGE_COUNT.txt)"
+            echo 'Layout used for verification: A4; Times New Roman 14 in DOCX; 1.5 spacing; margins 30/15/20/20 mm; first-line indent 12.5 mm. Runner may substitute a metric-compatible serif font during headless rendering.'
+            echo 'Appendix source materials are indexed separately and are not appended to this T6 main-text build.'
+          } > research/t6/build/BUILD_REPORT.md
+
+      - name: Upload T6 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: T6-WKR-Methodika-EG
+          path: |
+            research/t6/build/WKR_Methodika_EG_T6.docx
+            research/t6/build/pdf/WKR_Methodika_EG_T6.pdf
+            research/t6/build/PAGE_COUNT.txt
+            research/t6/build/BUILD_REPORT.md
+          if-no-files-found: error
+          retention-days: 30
