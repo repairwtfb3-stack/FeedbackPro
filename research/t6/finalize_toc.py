@@ -7,30 +7,47 @@ from docx.shared import Cm
 ROOT = Path(__file__).resolve().parents[2]
 DOCX = ROOT / "research/t6/build/WKR_Methodika_EG_T6.docx"
 
+# Verified A4 page map for the normalized T6 manuscript.
+PAGE_MAP = {
+    "Введение": 3,
+    "Глава 1.": 8,
+    "1.1.": 8,
+    "1.2.": 13,
+    "1.3.": 19,
+    "Глава 2.": 25,
+    "2.1.": 25,
+    "2.2.": 30,
+    "2.3.": 38,
+    "Глава 3.": 44,
+    "3.1.": 44,
+    "3.2.": 49,
+    "3.3.": 55,
+    "Заключение": 62,
+    "Список использованных источников": 66,
+}
 
-def patch_run(run, old_page: int, new_page: int, marker: str) -> bool:
+
+def patch_run(run, marker: str, page: int) -> bool:
     text = run.text or ""
-    if marker not in text:
+    stripped = text.strip()
+    if not stripped.startswith(marker):
         return False
-    updated, count = re.subn(rf"\s+{old_page}\s*$", f" {new_page}", text)
+    updated, count = re.subn(r"\s+\d+\s*$", f" {page}", text)
     if count:
         run.text = updated
-        return True
-    return re.search(rf"\s{new_page}\s*$", text) is not None
+    return count > 0 or re.search(rf"\s{page}\s*$", text) is not None
 
 
 def main() -> None:
     doc = Document(DOCX)
 
-    # Pandoc defaults to US Letter. T6 is verified and delivered on A4,
-    # therefore page size is fixed explicitly before the verification render.
+    # Pandoc defaults to US Letter; T6 is delivered and verified on A4.
     for section in doc.sections:
         section.page_width = Cm(21.0)
         section.page_height = Cm(29.7)
 
     inside = False
-    found_33 = found_conclusion = found_refs = False
-
+    seen = set()
     for p in doc.paragraphs:
         stripped = (p.text or "").strip()
         if stripped == "СОДЕРЖАНИЕ":
@@ -41,26 +58,20 @@ def main() -> None:
         if not inside:
             continue
 
-        # Preserve existing 11 pt TOC run formatting and line breaks.
-        # These values are an interim page map; the final T6 pass replaces
-        # them with the verified A4 map after section-length normalization.
+        # Each contents entry is kept in its original 11 pt run. Some grouped
+        # subsections share a paragraph but remain separate runs.
         for run in p.runs:
-            found_33 = patch_run(run, 61, 59, "3.3. KPI, план внедрения") or found_33
-            found_conclusion = patch_run(run, 68, 67, "Заключение") or found_conclusion
-            found_refs = patch_run(run, 76, 75, "Список использованных источников") or found_refs
+            for marker, page in PAGE_MAP.items():
+                if patch_run(run, marker, page):
+                    seen.add(marker)
+                    break
 
-    missing = []
-    if not found_33:
-        missing.append("3.3 -> 59")
-    if not found_conclusion:
-        missing.append("Заключение -> 67")
-    if not found_refs:
-        missing.append("Источники -> 75")
+    missing = set(PAGE_MAP) - seen
     if missing:
-        raise RuntimeError(f"Required TOC patches not verified: {missing}")
+        raise RuntimeError(f"TOC entries not verified: {sorted(missing)}")
 
     doc.save(DOCX)
-    print("DOCX finalized on A4; interim TOC page patches preserved")
+    print("DOCX finalized on A4; TOC verified against 71-page T6 map")
 
 
 if __name__ == "__main__":
