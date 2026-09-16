@@ -2,6 +2,7 @@
 from pathlib import Path
 import re
 from docx import Document
+from docx.shared import Cm
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCX = ROOT / "research/t6/build/WKR_Methodika_EG_T6.docx"
@@ -20,6 +21,13 @@ def patch_run(run, old_page: int, new_page: int, marker: str) -> bool:
 
 def main() -> None:
     doc = Document(DOCX)
+
+    # Pandoc defaults to US Letter. T6 is verified and delivered on A4,
+    # therefore page size is fixed explicitly before the verification render.
+    for section in doc.sections:
+        section.page_width = Cm(21.0)
+        section.page_height = Cm(29.7)
+
     inside = False
     found_33 = found_conclusion = found_refs = False
 
@@ -33,8 +41,9 @@ def main() -> None:
         if not inside:
             continue
 
-        # Preserve the existing run formatting (11 pt, line breaks) and edit
-        # only the final page number in the run that contains each TOC entry.
+        # Preserve existing 11 pt TOC run formatting and line breaks.
+        # These values are an interim page map; the final T6 pass replaces
+        # them with the verified A4 map after section-length normalization.
         for run in p.runs:
             found_33 = patch_run(run, 61, 59, "3.3. KPI, план внедрения") or found_33
             found_conclusion = patch_run(run, 68, 67, "Заключение") or found_conclusion
@@ -51,7 +60,7 @@ def main() -> None:
         raise RuntimeError(f"Required TOC patches not verified: {missing}")
 
     doc.save(DOCX)
-    print("TOC finalized with run formatting preserved: 3.3=59; Заключение=67; Источники=75")
+    print("DOCX finalized on A4; interim TOC page patches preserved")
 
 
 if __name__ == "__main__":
