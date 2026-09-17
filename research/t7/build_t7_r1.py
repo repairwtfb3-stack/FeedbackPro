@@ -6,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 from docx import Document
+from docx.shared import Cm
 
 from terminology_r1 import TARGET_NAMES, normalize_text
 
@@ -117,6 +118,11 @@ def main() -> None:
     )
     base.postprocess(final)
     doc = Document(final)
+    # T6 used a separate A4 finalizer. R1 enforces A4 before any page-map
+    # measurement so the pre-defense gate never validates a Letter render.
+    for section in doc.sections:
+        section.page_width = Cm(21.0)
+        section.page_height = Cm(29.7)
     doc.core_properties.title = "ВКР — Методика ЕГ — T7.1-R1"
     doc.save(final)
     print(final)
