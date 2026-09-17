@@ -18,7 +18,6 @@ import build_appendices as ba
 
 
 def _escape_newlines_inside_quotes(text: str) -> str:
-    """Convert literal line breaks inside Graphviz quoted labels to \\n."""
     out: list[str] = []
     in_quote = False
     escaped = False
@@ -41,7 +40,6 @@ def _escape_newlines_inside_quotes(text: str) -> str:
 
 
 def _normalize_inline_node_attrs(text: str) -> str:
-    """Rewrite invalid `A[label=..] -> B[label=..]` syntax into valid DOT."""
     node_pat = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*(\[[^\]]*\])")
     declared: set[str] = set()
     out: list[str] = []
@@ -71,6 +69,8 @@ def safe_dot_png(name: str, dot_body: str) -> Path:
     png_path = ba.GEN / f"{name}.png"
     body = _escape_newlines_inside_quotes(dot_body)
     body = _normalize_inline_node_attrs(body)
+    if name == "appendix_e_tobe":
+        body = body.replace("rankdir=TB;", "rankdir=LR;")
     dot_path.write_text(
         "digraph G {\n"
         "graph [bgcolor=white, pad=0.2, nodesep=0.35, ranksep=0.5];\n"
@@ -100,10 +100,8 @@ def _table_head(table: Table) -> list[str]:
 def _set_table_font(table: Table, size: float) -> None:
     for row in table.rows:
         tr_pr = row._tr.get_or_add_trPr()
-        cant_split = tr_pr.find(qn("w:cantSplit"))
-        if cant_split is None:
-            cant_split = OxmlElement("w:cantSplit")
-            tr_pr.append(cant_split)
+        if tr_pr.find(qn("w:cantSplit")) is None:
+            tr_pr.append(OxmlElement("w:cantSplit"))
         for cell in row.cells:
             for p in cell.paragraphs:
                 p.paragraph_format.space_before = Pt(0)
@@ -166,16 +164,14 @@ def _shrink_figure_before_caption(doc: Document, caption_prefix: str, factor: fl
 def polish_appendix_docx(path: Path) -> None:
     doc = Document(path)
 
-    # Keep explanatory notes with the material they qualify.
     _move_note_before_previous_table(doc, "C3/C4 являются уровнями предварительного скрининга")
     _move_note_before_previous_table(doc, "P4 и P5 сохраняют статус NOT ASSESSABLE INTERNALLY")
     _move_note_before_previous_table(doc, "R — выполняет; A — несёт итоговую ответственность")
 
-    # Make the two tall process figures fit together with their captions.
-    _shrink_figure_before_caption(doc, "Рисунок Е.1 — Целевой жизненный цикл работы с отзывом", factor=0.60)
+    # E is rendered horizontally to keep title, diagram and caption together; I stays vertical but compact.
+    _shrink_figure_before_caption(doc, "Рисунок Е.1 — Целевой жизненный цикл работы с отзывом", factor=0.92)
     _shrink_figure_before_caption(doc, "Рисунок И.1 — Логика проверки и эскалации", factor=0.64)
 
-    # Targeted table pagination: values are unchanged, only typography/page starts change.
     for kind, obj in list(_body_items(doc)):
         if kind != "t":
             continue
@@ -183,36 +179,31 @@ def polish_appendix_docx(path: Path) -> None:
         first = head[0] if head else ""
         second = head[1] if len(head) > 1 else ""
 
-        # Appendix B criticality table: move as one compact block to the next page.
         if first == "Уровень" and second == "Смысл" and len(obj.rows) == 5:
             _set_table_font(obj, 9)
             _insert_page_break_before_table(obj)
 
-        # Appendix V factual tables: slightly tighter typography prevents 1-2 row spillovers.
+        elif first == "aspect" and second == "count" and len(obj.rows) >= 10:
+            _set_table_font(obj, 7)
         elif first in {"source_name", "rating_num", "sentiment_proxy", "aspect", "criticality", "month"}:
             _set_table_font(obj, 8)
 
-        # Appendix D P1-P8 matrix: keep the full 8-row evidence matrix on one landscape page.
         elif first == "id" and second == "problem_hypothesis":
             _set_table_font(obj, 6)
 
-        # Appendix Zh process RACI: avoid a single orphan continuation row.
         elif first == "Этап" and len(head) == 9:
             _set_table_font(obj, 7)
 
-        # Appendix L: start S05 cleanly on the next page so the 3-row mini-table is not split.
-        elif first.startswith("S05 —"):
-            _insert_page_break_before_table(obj)
+        # S01-S10 are deliberately compact three-row concept cards; keep them dense enough for two clean pages.
+        elif re.match(r"^S\d{2}\s+—", first):
+            _set_table_font(obj, 8)
 
-        # Appendix T: compact both decision/preregistration tables enough to keep the closing note nearby.
         elif first == "Блок" and second == "Условие":
             _set_table_font(obj, 9)
         elif first == "Поле предварительной регистрации":
             _set_table_font(obj, 8)
 
-    # Keep the closing Appendix T warning before the preregistration table instead of stranding it.
     _move_note_before_previous_table(doc, "Пункты результатов пилота и AFTER не заполняются")
-
     doc.save(path)
 
 
