@@ -2,59 +2,67 @@
 from pathlib import Path
 import re
 
+from docx import Document
 from pypdf import PdfReader
 
+from finalize_toc_r1 import ENTRIES, body_page_map
+
 ROOT = Path(__file__).resolve().parents[2]
+DOCX = ROOT / "research/t7/build/WKR_Methodika_EG_T7_R1.docx"
 PDF = ROOT / "research/t7/build/pdf/WKR_Methodika_EG_T7_R1.pdf"
-
-EXPECTED = {
-    "Введение": 3,
-    "Глава 1.": 9,
-    "1.1.": 9,
-    "1.2.": 14,
-    "1.3.": 20,
-    "Глава 2.": 27,
-    "2.1.": 27,
-    "2.2.": 32,
-    "2.3.": 41,
-    "Глава 3.": 48,
-    "3.1.": 48,
-    "3.2.": 54,
-    "3.3.": 61,
-    "Заключение": 68,
-    "Список использованных источников": 73,
-}
+MAP_FILE = ROOT / "research/t7/build/R1_PAGE_MAP.txt"
 
 
-def norm(text: str) -> str:
-    return re.sub(r"\s+", " ", text or "").strip()
+def load_expected() -> dict[str, int]:
+    result = {}
+    for line in MAP_FILE.read_text(encoding="utf-8").splitlines():
+        prefix, page = line.rsplit("\t", 1)
+        result[prefix] = int(page)
+    return result
 
 
-def first_page(texts: list[str], marker: str) -> int | None:
-    for i, text in enumerate(texts, start=1):
-        if i == 2:  # contents page
+def toc_map_from_docx() -> dict[str, int]:
+    doc = Document(DOCX)
+    inside = False
+    result: dict[str, int] = {}
+    prefixes = [prefix for prefix, _ in ENTRIES]
+    for p in doc.paragraphs:
+        text = (p.text or "").strip()
+        if text == "СОДЕРЖАНИЕ":
+            inside = True
             continue
-        if marker in text:
-            return i
-    return None
+        if inside and text == "Введение":
+            break
+        if not inside:
+            continue
+        for run in p.runs:
+            run_text = (run.text or "").strip()
+            for prefix in prefixes:
+                if run_text.startswith(prefix):
+                    m = re.search(r"(\d+)\s*$", run_text)
+                    if m:
+                        result[prefix] = int(m.group(1))
+                    break
+    return result
 
 
 def main() -> None:
-    reader = PdfReader(PDF)
-    texts = [norm(page.extract_text() or "") for page in reader.pages]
-    if len(texts) != 78:
-        raise RuntimeError(f"R1 page count changed: {len(texts)} != 78")
+    expected = load_expected()
+    actual = body_page_map(PDF)
+    toc = toc_map_from_docx()
+    pages = len(PdfReader(PDF).pages)
 
-    actual = {}
-    for marker in EXPECTED:
-        page = first_page(texts, marker)
-        actual[marker] = page
-        if page != EXPECTED[marker]:
-            raise RuntimeError(f"page map mismatch for {marker!r}: {page} != {EXPECTED[marker]}")
+    if not 60 <= pages <= 80:
+        raise RuntimeError(f"A4 page count outside 60–80: {pages}")
+    if actual != expected:
+        raise RuntimeError(f"body page map changed after TOC patch: actual={actual}, expected={expected}")
+    if toc != expected:
+        raise RuntimeError(f"DOCX TOC does not match rendered body map: toc={toc}, expected={expected}")
 
-    print("T7.1-R1 rendered page map PASS")
-    for marker, page in actual.items():
-        print(f"{marker} -> {page}")
+    print(f"T7.1-R1 A4 page count PASS: {pages}")
+    print("T7.1-R1 rendered body map = DOCX contents map: PASS")
+    for prefix, _ in ENTRIES:
+        print(f"{prefix} -> {actual[prefix]}")
 
 
 if __name__ == "__main__":
