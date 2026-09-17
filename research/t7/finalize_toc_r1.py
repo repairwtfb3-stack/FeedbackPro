@@ -14,8 +14,8 @@ ENTRIES = [
     ("Введение", "Введение"),
     ("Глава 1.", "Глава 1. Теоретические основы организации работы с отзывами клиентов в системе PR-коммуникаций"),
     ("1.1.", "1.1. Клиентский отзыв как форма обратной связи и PR-коммуникации в цифровой среде"),
-    ("1.2.", "1.2. Клиентский опыт, цифровая репутация и управленческое значение отзывов"),
-    ("1.3.", "1.3. Подходы к классификации и анализу клиентских отзывов"),
+    ("1.2.", "1.2. Клиентский опыт, цифровая репутация и влияние отзывов на поведение потребителей"),
+    ("1.3.", "1.3. Подходы к классификации и анализу клиентских отзывов: возможности и ограничения автоматизации"),
     ("Глава 2.", "Глава 2. Анализ публичного контура клиентских отзывов торговой сети «Перекрёсток»"),
     ("2.1.", "2.1. Характеристика объекта исследования, информационных каналов и методики формирования корпуса"),
     ("2.2.", "2.2. Результаты контент-анализа и количественной группировки клиентских отзывов"),
@@ -30,7 +30,29 @@ ENTRIES = [
 
 
 def norm(text: str) -> str:
-    return re.sub(r"\s+", " ", text or "").strip()
+    text = (text or "").replace("\u00ad", "")
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def compact(text: str) -> str:
+    return re.sub(r"[^0-9A-Za-zА-Яа-яЁё]+", " ", norm(text)).strip().lower()
+
+
+def heading_matches(page_text: str, prefix: str, full: str) -> bool:
+    page_norm = norm(page_text)
+    if norm(full) in page_norm:
+        return True
+    page_compact = compact(page_text)
+    full_words = compact(full).split()
+    # PDF extraction can split punctuation/quotes differently; the section number
+    # plus the first meaningful words is sufficient after the contents page is excluded.
+    if prefix.startswith("Глава"):
+        anchor_words = full_words[:6]
+    elif re.match(r"^\d+\.\d+\.$", prefix):
+        anchor_words = full_words[:7]
+    else:
+        anchor_words = full_words[:3]
+    return all(word in page_compact for word in anchor_words)
 
 
 def body_page_map(pdf: Path) -> dict[str, int]:
@@ -40,7 +62,7 @@ def body_page_map(pdf: Path) -> dict[str, int]:
     for prefix, full in ENTRIES:
         found = None
         for i, text in enumerate(texts[2:], start=3):
-            if full in text:
+            if heading_matches(text, prefix, full):
                 found = i
                 break
         if found is None:
