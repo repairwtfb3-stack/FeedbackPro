@@ -1,0 +1,72 @@
+name: T7.1 Appendices A-T Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'research/t7/build_appendices.py'
+      - 'research/t7/audit_appendices.py'
+      - 'docs/t7/T7_APPENDICES_ASSEMBLY.md'
+      - 'research/t3/output/tables/**'
+      - 'research/t3/output/charts/**'
+      - 'research/t3/output/P1_P8_MATRIX.csv'
+      - 'research/t3/output/acquisition_manifest.json'
+      - '.github/workflows/t7-appendices-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install document toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice-writer poppler-utils graphviz fonts-liberation
+          python -m pip install --upgrade pip
+          python -m pip install python-docx pypdf
+
+      - name: Build appendices DOCX
+        run: |
+          python research/t7/build_appendices.py
+          test -s research/t7/build_appendices/WKR_Methodika_EG_Appendices_A_T.docx
+
+      - name: Convert to PDF and audit
+        run: |
+          mkdir -p research/t7/build_appendices/pdf
+          libreoffice --headless --convert-to pdf --outdir research/t7/build_appendices/pdf research/t7/build_appendices/WKR_Methodika_EG_Appendices_A_T.docx
+          PDF=research/t7/build_appendices/pdf/WKR_Methodika_EG_Appendices_A_T.pdf
+          test -s "$PDF"
+          pdfinfo "$PDF" | awk '/^Pages:/ {print $2}' | tee research/t7/build_appendices/PAGE_COUNT.txt
+          python research/t7/audit_appendices.py
+
+      - name: Write build report
+        run: |
+          {
+            echo '# T7.1 appendices build report'
+            echo
+            echo "Commit: $GITHUB_SHA"
+            echo "Pages: $(cat research/t7/build_appendices/PAGE_COUNT.txt)"
+            echo 'Appendices A–T are built as a separate packet and do not alter the 60–80 page main thesis volume.'
+            echo 'All empirical tables/charts are sourced directly from T3 output.'
+            echo 'The packet does not assert a completed pilot or implemented software.'
+          } > research/t7/build_appendices/BUILD_REPORT.md
+
+      - name: Upload appendix artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: T7.1-Appendices-A-T-Methodika-EG
+          path: |
+            research/t7/build_appendices/WKR_Methodika_EG_Appendices_A_T.docx
+            research/t7/build_appendices/pdf/WKR_Methodika_EG_Appendices_A_T.pdf
+            research/t7/build_appendices/APPENDICES_AUDIT.md
+            research/t7/build_appendices/BUILD_REPORT.md
+            research/t7/build_appendices/PAGE_COUNT.txt
+          if-no-files-found: error
+          retention-days: 30
