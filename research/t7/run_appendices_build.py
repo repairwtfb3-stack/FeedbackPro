@@ -120,6 +120,21 @@ def _insert_page_break_before_table(table: Table) -> None:
     table._tbl.addprevious(p)
 
 
+def _insert_page_break_before_paragraph(doc: Document, prefix: str) -> None:
+    for kind, obj in _body_items(doc):
+        if kind != "p" or not (obj.text or "").strip().startswith(prefix):
+            continue
+        p = OxmlElement("w:p")
+        r = OxmlElement("w:r")
+        br = OxmlElement("w:br")
+        br.set(qn("w:type"), "page")
+        r.append(br)
+        p.append(r)
+        obj._p.addprevious(p)
+        return
+    raise RuntimeError(f"Paragraph not found for page break: {prefix}")
+
+
 def _move_note_before_previous_table(doc: Document, prefix: str) -> None:
     items = list(_body_items(doc))
     for idx, (kind, obj) in enumerate(items):
@@ -171,6 +186,10 @@ def polish_appendix_docx(path: Path) -> None:
     _shrink_figure_before_caption(doc, "Рисунок Е.1 — Целевой жизненный цикл работы с отзывом", factor=0.92)
     _shrink_figure_before_caption(doc, "Рисунок И.1 — Логика проверки и эскалации", factor=0.64)
 
+    # The aspect-frequency table is intentionally started on a clean page together with its caption.
+    # This prevents Word/LibreOffice from stranding the final DIGITAL row on the next page.
+    _insert_page_break_before_paragraph(doc, "Таблица В.4 — Частота аспектов")
+
     for kind, obj in list(_body_items(doc)):
         if kind != "t":
             continue
@@ -182,8 +201,6 @@ def polish_appendix_docx(path: Path) -> None:
             _set_table_font(obj, 9)
             _insert_page_break_before_table(obj)
 
-        elif first == "aspect" and second == "count" and len(obj.rows) >= 10:
-            _set_table_font(obj, 6)
         elif first in {"source_name", "rating_num", "sentiment_proxy", "aspect", "criticality", "month"}:
             _set_table_font(obj, 8)
 
