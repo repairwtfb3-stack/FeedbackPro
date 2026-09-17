@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'research/t7/build_appendices.py'
+      - 'research/t7/run_appendices_build.py'
       - 'research/t7/audit_appendices.py'
       - 'docs/t7/T7_APPENDICES_ASSEMBLY.md'
       - 'research/t3/output/tables/**'
@@ -34,7 +35,7 @@ jobs:
 
       - name: Build appendices DOCX
         run: |
-          python research/t7/build_appendices.py
+          python research/t7/run_appendices_build.py
           test -s research/t7/build_appendices/WKR_Methodika_EG_Appendices_A_T.docx
 
       - name: Convert to PDF and audit
