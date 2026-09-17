@@ -31,7 +31,9 @@ jobs:
         run: python research/t7/audit_t7_r1.py
 
       - name: Build T7.1-R1 DOCX
-        run: python research/t7/build_t7_r1.py
+        run: |
+          python research/t7/build_t7_r1.py
+          python research/t7/finalize_toc_r1.py
 
       - name: Convert to PDF and verify
         run: |
@@ -50,6 +52,7 @@ jobs:
           grep -q 'Глава 2' research/t7/build/WKR_Methodika_EG_T7_R1.txt
           grep -q 'Глава 3' research/t7/build/WKR_Methodika_EG_T7_R1.txt
           grep -q 'Заключение' research/t7/build/WKR_Methodika_EG_T7_R1.txt
+          python research/t7/verify_pdf_map_r1.py
 
       - name: Write build report
         run: |
@@ -61,6 +64,7 @@ jobs:
             echo 'T6 closed baseline is not modified.'
             echo 'R1 transformations are deterministic and limited to terminology/editorial wording.'
             echo 'Citation-token and numeric-token invariance is enforced by audit_t7_r1.py.'
+            echo 'Rendered 78-page page map and static contents are verified by verify_pdf_map_r1.py.'
             echo 'Title page remains administrative-blocked and is not treated as final.'
             echo 'Appendices are not yet attached in R1.'
           } > research/t7/build/BUILD_REPORT.md
