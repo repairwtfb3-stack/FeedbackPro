@@ -30,14 +30,18 @@ jobs:
       - name: Citation and evidence invariance audit
         run: python research/t7/audit_t7_r1.py
 
-      - name: Build T7.1-R1 DOCX
+      - name: Build provisional A4 DOCX and derive exact page map
         run: |
           python research/t7/build_t7_r1.py
+          mkdir -p research/t7/build/pdf_provisional
+          libreoffice --headless --convert-to pdf --outdir research/t7/build/pdf_provisional research/t7/build/WKR_Methodika_EG_T7_R1.docx
+          test -s research/t7/build/pdf_provisional/WKR_Methodika_EG_T7_R1.pdf
           python research/t7/finalize_toc_r1.py
 
-      - name: Convert to PDF and verify
+      - name: Render final A4 PDF and verify contents
         run: |
           mkdir -p research/t7/build/pdf
+          rm -f research/t7/build/pdf/WKR_Methodika_EG_T7_R1.pdf
           libreoffice --headless --convert-to pdf --outdir research/t7/build/pdf research/t7/build/WKR_Methodika_EG_T7_R1.docx
           PDF=research/t7/build/pdf/WKR_Methodika_EG_T7_R1.pdf
           pages=$(pdfinfo "$PDF" | awk '/^Pages:/ {print $2}')
@@ -60,11 +64,11 @@ jobs:
             echo '# T7.1-R1 editorial build report'
             echo
             echo "Commit: $GITHUB_SHA"
-            echo "Pages: $(cat research/t7/build/PAGE_COUNT.txt)"
-            echo 'T6 closed baseline is not modified.'
+            echo "Pages (A4): $(cat research/t7/build/PAGE_COUNT.txt)"
+            echo 'T6 closed baseline remains the evidence baseline.'
             echo 'R1 transformations are deterministic and limited to terminology/editorial wording.'
             echo 'Citation-token and numeric-token invariance is enforced by audit_t7_r1.py.'
-            echo 'Rendered 78-page page map and static contents are verified by verify_pdf_map_r1.py.'
+            echo 'A4 is enforced before pagination; contents are derived from a provisional A4 render and verified against the final A4 render.'
             echo 'Title page remains administrative-blocked and is not treated as final.'
             echo 'Appendices are not yet attached in R1.'
           } > research/t7/build/BUILD_REPORT.md
@@ -78,6 +82,7 @@ jobs:
             research/t7/build/pdf/WKR_Methodika_EG_T7_R1.pdf
             research/t7/build/T7_R1_COMBINED.md
             research/t7/build/T7_R1_AUDIT.md
+            research/t7/build/R1_PAGE_MAP.txt
             research/t7/build/sources/**
             research/t7/build/PAGE_COUNT.txt
             research/t7/build/BUILD_REPORT.md
