@@ -10,6 +10,7 @@ DOCX = ROOT / "research/t7/build/WKR_Methodika_EG_T7_R1.docx"
 PROVISIONAL_PDF = ROOT / "research/t7/build/pdf_provisional/WKR_Methodika_EG_T7_R1.pdf"
 MAP_FILE = ROOT / "research/t7/build/R1_PAGE_MAP.txt"
 
+# Titles must match the actual immutable/edited thesis body exactly.
 ENTRIES = [
     ("Введение", "Введение"),
     ("Глава 1.", "Глава 1. Теоретические основы организации работы с отзывами клиентов в системе PR-коммуникаций"),
@@ -34,40 +35,36 @@ def norm(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def compact(text: str) -> str:
-    return re.sub(r"[^0-9A-Za-zА-Яа-яЁё]+", " ", norm(text)).strip().lower()
-
-
-def heading_matches(page_text: str, prefix: str, full: str) -> bool:
-    page_norm = norm(page_text)
-    if norm(full) in page_norm:
-        return True
-    page_compact = compact(page_text)
-    full_words = compact(full).split()
-    # PDF extraction can split punctuation/quotes differently; the section number
-    # plus the first meaningful words is sufficient after the contents page is excluded.
-    if prefix.startswith("Глава"):
-        anchor_words = full_words[:6]
-    elif re.match(r"^\d+\.\d+\.$", prefix):
-        anchor_words = full_words[:7]
-    else:
-        anchor_words = full_words[:3]
-    return all(word in page_compact for word in anchor_words)
-
-
 def body_page_map(pdf: Path) -> dict[str, int]:
+    """Find each heading in body order, never by loose keyword membership.
+
+    Page 1 is the administrative cover and page 2 is the contents page in the
+    current R1 build. Search starts at page 3. Consecutive headings may share a
+    page (e.g. chapter heading and its first subsection), therefore the next
+    scan starts from the page that matched the previous heading rather than the
+    following page.
+    """
     reader = PdfReader(pdf)
     texts = [norm(page.extract_text() or "") for page in reader.pages]
     result: dict[str, int] = {}
+    start_idx = 2  # zero-based page 3; excludes title and contents.
+
     for prefix, full in ENTRIES:
-        found = None
-        for i, text in enumerate(texts[2:], start=3):
-            if heading_matches(text, prefix, full):
-                found = i
+        target = norm(full)
+        found_idx = None
+        for idx in range(start_idx, len(texts)):
+            if target in texts[idx]:
+                found_idx = idx
                 break
-        if found is None:
-            raise RuntimeError(f"Body heading not found in provisional PDF: {full}")
-        result[prefix] = found
+        if found_idx is None:
+            raise RuntimeError(f"Exact body heading not found in provisional PDF: {full}")
+        result[prefix] = found_idx + 1
+        start_idx = found_idx
+
+    # Monotonicity is a hard invariant for the body structure.
+    pages = [result[prefix] for prefix, _ in ENTRIES]
+    if pages != sorted(pages):
+        raise RuntimeError(f"Non-monotonic body page map: {pages}")
     return result
 
 
@@ -114,7 +111,7 @@ def main() -> None:
         "\n".join(f"{prefix}\t{page_map[prefix]}" for prefix, _ in ENTRIES) + "\n",
         encoding="utf-8",
     )
-    print("T7.1-R1 TOC finalized from provisional A4 render")
+    print("T7.1-R1 TOC finalized from exact sequential A4 body headings")
     for prefix, _ in ENTRIES:
         print(f"{prefix} -> {page_map[prefix]}")
 
