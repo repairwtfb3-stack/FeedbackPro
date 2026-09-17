@@ -36,18 +36,11 @@ def norm(text: str) -> str:
 
 
 def body_page_map(pdf: Path) -> dict[str, int]:
-    """Find each heading in body order, never by loose keyword membership.
-
-    Page 1 is the administrative cover and page 2 is the contents page in the
-    current R1 build. Search starts at page 3. Consecutive headings may share a
-    page (e.g. chapter heading and its first subsection), therefore the next
-    scan starts from the page that matched the previous heading rather than the
-    following page.
-    """
+    """Find each heading in body order, never by loose keyword membership."""
     reader = PdfReader(pdf)
     texts = [norm(page.extract_text() or "") for page in reader.pages]
     result: dict[str, int] = {}
-    start_idx = 2  # zero-based page 3; excludes title and contents.
+    start_idx = 2  # zero-based page 3; excludes administrative cover + contents.
 
     for prefix, full in ENTRIES:
         target = norm(full)
@@ -59,24 +52,28 @@ def body_page_map(pdf: Path) -> dict[str, int]:
         if found_idx is None:
             raise RuntimeError(f"Exact body heading not found in provisional PDF: {full}")
         result[prefix] = found_idx + 1
+        # Consecutive headings may share the same page (chapter + first subsection).
         start_idx = found_idx
 
-    # Monotonicity is a hard invariant for the body structure.
     pages = [result[prefix] for prefix, _ in ENTRIES]
     if pages != sorted(pages):
         raise RuntimeError(f"Non-monotonic body page map: {pages}")
     return result
 
 
-def patch_run(run, prefix: str, page: int) -> bool:
+def toc_line(full: str, page: int) -> str:
+    dots = "." * max(6, 74 - min(len(full), 64))
+    return f"{full} {dots} {page}"
+
+
+def patch_run(run, prefix: str, full: str, page: int) -> bool:
     text = run.text or ""
     if not text.strip().startswith(prefix):
         return False
-    updated, count = re.subn(r"\s+\d+\s*$", f" {page}", text)
-    if count:
-        run.text = updated
-        return True
-    return re.search(rf"\s{page}\s*$", text) is not None
+    # Replace the entire TOC line, not only its page number. This keeps the
+    # contents synchronized with immutable chapter-1 body headings as well.
+    run.text = toc_line(full, page)
+    return True
 
 
 def main() -> None:
@@ -97,8 +94,8 @@ def main() -> None:
         if not inside:
             continue
         for run in p.runs:
-            for prefix, _full in ENTRIES:
-                if patch_run(run, prefix, page_map[prefix]):
+            for prefix, full in ENTRIES:
+                if patch_run(run, prefix, full, page_map[prefix]):
                     seen.add(prefix)
                     break
 
