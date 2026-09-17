@@ -5,6 +5,13 @@ import re
 import subprocess
 from pathlib import Path
 
+from docx import Document
+from docx.oxml.ns import qn
+from docx.oxml.table import CT_Tbl
+from docx.oxml.text.paragraph import CT_P
+from docx.table import Table
+from docx.text.paragraph import Paragraph
+
 import build_appendices as ba
 
 
@@ -32,12 +39,7 @@ def _escape_newlines_inside_quotes(text: str) -> str:
 
 
 def _normalize_inline_node_attrs(text: str) -> str:
-    """Rewrite invalid `A[label=..] -> B[label=..]` syntax into valid DOT.
-
-    build_appendices.py intentionally stores compact human-readable graph bodies.
-    Graphviz requires node declarations to be separate from an edge chain, so
-    this adapter extracts node attributes and then emits the edge statement.
-    """
+    """Rewrite invalid `A[label=..] -> B[label=..]` syntax into valid DOT."""
     node_pat = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*(\[[^\]]*\])")
     declared: set[str] = set()
     out: list[str] = []
@@ -88,5 +90,67 @@ def safe_dot_png(name: str, dot_body: str) -> Path:
     return png_path
 
 
+def _body_items(doc: Document):
+    for child in doc.element.body.iterchildren():
+        if isinstance(child, CT_P):
+            yield "p", Paragraph(child, doc)
+        elif isinstance(child, CT_Tbl):
+            yield "t", Table(child, doc)
+
+
+def _move_note_before_previous_table(doc: Document, prefix: str) -> None:
+    items = list(_body_items(doc))
+    for idx, (kind, obj) in enumerate(items):
+        if kind != "p" or not (obj.text or "").strip().startswith(prefix):
+            continue
+        for j in range(idx - 1, -1, -1):
+            prev_kind, prev_obj = items[j]
+            if prev_kind == "t":
+                prev_obj._tbl.addprevious(obj._p)
+                return
+        raise RuntimeError(f"Previous table not found for appendix note: {prefix}")
+    raise RuntimeError(f"Appendix note not found: {prefix}")
+
+
+def _shrink_figure_before_caption(doc: Document, caption_prefix: str, factor: float = 0.82) -> None:
+    items = list(_body_items(doc))
+    for idx, (kind, obj) in enumerate(items):
+        if kind != "p" or not (obj.text or "").strip().startswith(caption_prefix):
+            continue
+        obj.paragraph_format.keep_together = True
+        for j in range(idx - 1, -1, -1):
+            prev_kind, prev_obj = items[j]
+            if prev_kind != "p":
+                continue
+            drawings = prev_obj._p.xpath('.//w:drawing')
+            if not drawings:
+                if (prev_obj.text or "").strip():
+                    break
+                continue
+            prev_obj.paragraph_format.keep_with_next = True
+            for extent in prev_obj._p.xpath('.//wp:extent'):
+                for attr in ('cx', 'cy'):
+                    extent.set(attr, str(int(int(extent.get(attr)) * factor)))
+            for extent in prev_obj._p.xpath('.//a:ext'):
+                for attr in ('cx', 'cy'):
+                    extent.set(attr, str(int(int(extent.get(attr)) * factor)))
+            return
+        raise RuntimeError(f"Figure paragraph not found for caption: {caption_prefix}")
+    raise RuntimeError(f"Caption not found: {caption_prefix}")
+
+
+def polish_appendix_docx(path: Path) -> None:
+    doc = Document(path)
+    # These notes were previously orphaned on nearly empty pages after long tables.
+    # Moving them before the corresponding table preserves content and improves pagination.
+    _move_note_before_previous_table(doc, "C3/C4 являются уровнями предварительного скрининга")
+    _move_note_before_previous_table(doc, "P4 и P5 сохраняют статус NOT ASSESSABLE INTERNALLY")
+    _move_note_before_previous_table(doc, "R — выполняет; A — несёт итоговую ответственность")
+    # Keep the decision-tree caption with its figure by slightly reducing only this figure.
+    _shrink_figure_before_caption(doc, "Рисунок И.1 — Логика проверки и эскалации", factor=0.82)
+    doc.save(path)
+
+
 ba.dot_png = safe_dot_png
 ba.build()
+polish_appendix_docx(ba.DOCX)
