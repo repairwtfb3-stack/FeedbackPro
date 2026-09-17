@@ -7,6 +7,7 @@ on:
     paths:
       - 'research/t7/build_appendices.py'
       - 'research/t7/run_appendices_build.py'
+      - 'research/t7/finalize_appendix_captions.py'
       - 'research/t7/audit_appendices.py'
       - 'docs/t7/T7_APPENDICES_ASSEMBLY.md'
       - 'research/t3/output/tables/**'
@@ -36,6 +37,7 @@ jobs:
       - name: Build appendices DOCX
         run: |
           python research/t7/run_appendices_build.py
+          python research/t7/finalize_appendix_captions.py
           test -s research/t7/build_appendices/WKR_Methodika_EG_Appendices_A_T.docx
 
       - name: Convert to PDF and audit
@@ -54,7 +56,7 @@ jobs:
             echo
             echo "Commit: $GITHUB_SHA"
             echo "Pages: $(cat research/t7/build_appendices/PAGE_COUNT.txt)"
-            echo 'Appendices A–T are built as a separate packet and do not alter the 60–80 page main thesis volume.'
+            echo 'Appendices A–Т are built as a separate packet and do not alter the 60–80 page main thesis volume.'
             echo 'All empirical tables/charts are sourced directly from T3 output.'
             echo 'The packet does not assert a completed pilot or implemented software.'
           } > research/t7/build_appendices/BUILD_REPORT.md
