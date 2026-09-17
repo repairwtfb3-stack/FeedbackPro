@@ -5,8 +5,17 @@ on:
     branches:
       - main
     paths:
-      - 'research/t7/**'
-      - 'docs/t7/**'
+      - 'docs/t6/T6_INTRODUCTION.md'
+      - 'docs/t6/T6_CHAPTER_1.md'
+      - 'docs/t6/T6_CHAPTER_2.md'
+      - 'docs/t6/T6_CHAPTER_3.md'
+      - 'docs/t6/T6_CONCLUSION.md'
+      - 'docs/t6/T6_REFERENCES.md'
+      - 'research/t7/terminology_r1.py'
+      - 'research/t7/audit_t7_r1.py'
+      - 'research/t7/build_t7_r1.py'
+      - 'research/t7/finalize_toc_r1.py'
+      - 'research/t7/verify_pdf_map_r1.py'
       - '.github/workflows/t7-r1-editorial.yml'
   workflow_dispatch:
 
@@ -70,7 +79,7 @@ jobs:
             echo 'Citation-token and numeric-token invariance is enforced by audit_t7_r1.py.'
             echo 'A4 is enforced before pagination; contents are derived from a provisional A4 render and verified against the final A4 render.'
             echo 'Title page remains administrative-blocked and is not treated as final.'
-            echo 'Appendices are not yet attached in R1.'
+            echo 'Appendices are built separately and do not alter the 60–80 page main thesis volume.'
           } > research/t7/build/BUILD_REPORT.md
 
       - name: Upload T7.1-R1 artifact
