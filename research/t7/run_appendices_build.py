@@ -168,7 +168,6 @@ def polish_appendix_docx(path: Path) -> None:
     _move_note_before_previous_table(doc, "P4 и P5 сохраняют статус NOT ASSESSABLE INTERNALLY")
     _move_note_before_previous_table(doc, "R — выполняет; A — несёт итоговую ответственность")
 
-    # E is rendered horizontally to keep title, diagram and caption together; I stays vertical but compact.
     _shrink_figure_before_caption(doc, "Рисунок Е.1 — Целевой жизненный цикл работы с отзывом", factor=0.92)
     _shrink_figure_before_caption(doc, "Рисунок И.1 — Логика проверки и эскалации", factor=0.64)
 
@@ -184,7 +183,7 @@ def polish_appendix_docx(path: Path) -> None:
             _insert_page_break_before_table(obj)
 
         elif first == "aspect" and second == "count" and len(obj.rows) >= 10:
-            _set_table_font(obj, 7)
+            _set_table_font(obj, 6)
         elif first in {"source_name", "rating_num", "sentiment_proxy", "aspect", "criticality", "month"}:
             _set_table_font(obj, 8)
 
@@ -194,7 +193,6 @@ def polish_appendix_docx(path: Path) -> None:
         elif first == "Этап" and len(head) == 9:
             _set_table_font(obj, 7)
 
-        # S01-S10 are deliberately compact three-row concept cards; keep them dense enough for two clean pages.
         elif re.match(r"^S\d{2}\s+—", first):
             _set_table_font(obj, 8)
 
